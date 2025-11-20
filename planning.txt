@@ -1,0 +1,8 @@
+Current Idea is to use a 2d array to determine where to draw blocks
+
+objects: block class, game area class, score count
+U
+play area: The current state of the play area
+display area: The play area that also represents where the current falling block is
+
+addBlock(gameBlock): Adds blcok to the play area
