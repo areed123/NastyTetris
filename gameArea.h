@@ -10,12 +10,12 @@
 class gameArea {
     public:
     static constexpr bool stick[2][4]={{1,1,1,1}, {0,0,0,0}}; //0
-    static constexpr bool skew[2][4] = {{1,1,0,},{0,1,1}}; //1
-    static constexpr bool square[2][2] = {{1,1},{1,1}}; //2
-    static constexpr bool Tblock[2][3] = {{1,1,1},{0,1,0}}; //3
-    static constexpr bool LBlock[2][3] = {{1,1,1},{1,0,0}}; //4
-    static constexpr bool ReverseL[2][3] = {{1,1,1},{0,0,1}}; //5
-    static constexpr bool ReverseSkew[2][4] = {{0,1,1},{1,1,0}}; //6
+    static constexpr bool skew[2][4] = {{1,1,0,0},{0,1,1,0}}; //1
+    static constexpr bool square[2][4] = {{1,1,0,0},{1,1,0,0}}; //2
+    static constexpr bool Tblock[2][4] = {{1,1,1},{0,1,0,0}}; //3
+    static constexpr bool LBlock[2][4] = {{1,1,1,0},{1,0,0,0}}; //4
+    static constexpr bool ReverseL[2][4] = {{1,1,1,0},{0,0,1,0}}; //5
+    static constexpr bool ReverseSkew[2][4] = {{0,1,1,0},{1,1,0,0}}; //6
 
     gameArea();
     bool moveBlock(gameBlock &activeBlock, int dir); //Move block a step down and in the direction inputted return false if block stops left=0,right=1
