@@ -10,17 +10,18 @@ SDL_Texture* blockTexture;
 SDL_Texture* gridTexture;
 
 bool gArea[24][10];
+bool gRows[24];
 int score{0};
 const int kWindowWidth{640};
 const int kWindowHeight{720};
 const int kFps{60};
- bool stick[2][4]={{1,1,1,1}, {0,0,0,0}}; //0
- bool skew[2][4] = {{1,1,0,0},{0,1,1,0}}; //1
- bool square[2][4] = {{1,1,0,0},{1,1,0,0}}; //2
- bool Tblock[2][4] = {{1,1,1},{0,1,0,0}}; //3
- bool LBlock[2][4] = {{1,1,1,0},{1,0,0,0}}; //4
- bool ReverseL[2][4] = {{1,1,1,0},{0,0,1,0}}; //5
- bool ReverseSkew[2][4] = {{0,1,1,0},{1,1,0,0}}; //6
+ bool stick[4][4]={{1,1,1,1}, {0,0,0,0},{0,0,0,0},{0,0,0,0}}; //0
+ bool skew[4][4] = {{1,1,0,0},{0,1,1,0},{0,0,0,0},{0,0,0,0}}; //1
+ bool square[4][4] = {{1,1,0,0},{1,1,0,0},{0,0,0,0},{0,0,0,0}}; //2
+ bool Tblock[4][4] = {{1,1,1},{0,1,0,0},{0,0,0,0},{0,0,0,0}}; //3
+ bool LBlock[4][4] = {{1,1,1,0},{1,0,0,0},{0,0,0,0},{0,0,0,0}}; //4
+ bool ReverseL[4][4] = {{1,1,1,0},{0,0,1,0},{0,0,0,0},{0,0,0,0}}; //5
+ bool ReverseSkew[4][4] = {{0,1,1,0},{1,1,0,0},{0,0,0,0},{0,0,0,0}}; //6
 constexpr SDL_FRect block{0,0,10,10};
 bool init()
 {
@@ -28,7 +29,7 @@ bool init()
     {
         for (int j=0; j<24; j++)
         {
-            gArea[i][j]=false;
+            gArea[j][i]=false;
         }
     }
     bool success{true};
@@ -86,7 +87,7 @@ bool loadMedia(std::string path)
 
     return(success);
 }
-int placeBlock(bool (*blk)[2][4])
+int placeBlock(bool (*blk)[4][4])
 {
     bool placed{true};
     int k=-1;
@@ -94,7 +95,7 @@ int placeBlock(bool (*blk)[2][4])
     {
         k++;
         placed = true;
-        for (int i=0; i<2; i++)
+        for (int i=0; i<4; i++)
         {
             for (int j=0; j<4; j++)
             {
@@ -114,17 +115,17 @@ int placeBlock(bool (*blk)[2][4])
     }
     return(k);
 }
-bool checkCollisions(int xPos, int yPos, bool (*blk)[2][4])
+bool checkCollisions(int xPos, int yPos, bool (*blk)[4][4])
 {
     SDL_FRect gameBlock;
     bool collision{false};
-    for (int i=0; i<2; i++)
+    for (int i=0; i<4; i++)
     {
         for (int j=0; j<4; j++)
         {
             if ((*blk)[i][j]==true)
             {
-                if (gArea[i+yPos][j+xPos]==true||j+xPos>=10||i+yPos>=24)
+                if (gArea[i+yPos][j+xPos]==true||j+xPos>=10||j+xPos<0||i+yPos>=24)
                 {
                     collision = true;
                 }
@@ -138,10 +139,10 @@ bool checkCollisions(int xPos, int yPos, bool (*blk)[2][4])
     }
     return(collision);
 }
-bool renderBlock(int xPos, int yPos, bool (*blk)[2][4])
+bool renderBlock(int xPos, int yPos, bool (*blk)[4][4])
 {
     SDL_FRect gameBlock;
-    for (int i=0; i<2; i++)
+    for (int i=0; i<4; i++)
     {
         for (int j=0; j<4; j++)
         {
@@ -154,14 +155,123 @@ bool renderBlock(int xPos, int yPos, bool (*blk)[2][4])
         }
     }
 }
-void setBlock(int xPos, int yPos, bool (*blk)[2][4])
+void copyBlock(bool (*&blk)[4][4], bool (*copyBlock)[4][4])
 {
-    for (int i=0; i<2; i++)
+    for (int i=0;i<4;i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            (*blk)[i][j]=(*copyBlock)[i][j];
+        }
+    }
+
+}
+void randBlock(bool (*&blk)[4][4])
+{
+    Uint64 choice=SDL_GetTicks()%7;
+    switch (choice){
+    case 0:
+        copyBlock(blk, &stick);
+        break;
+    case 1:
+        copyBlock(blk, &skew);
+        break;
+    case 2:
+        copyBlock(blk, &square);
+        break;
+    case 3:
+        copyBlock(blk, &Tblock);
+        break;
+    case 4:
+        copyBlock(blk,&LBlock );
+        break;
+    case 5:
+        copyBlock(blk, &ReverseSkew);
+        break;
+    case 6:
+        copyBlock(blk, &ReverseL);
+        break;
+    }
+}
+void setBlock(int xPos, int yPos, bool (*blk)[4][4])
+{
+    for (int i=0; i<4; i++)
     {
         for (int j=0; j<4; j++)
         {
             if ((*blk)[i][j]==true)
                 gArea[yPos+i][xPos+j]=true;
+        }
+    }
+}
+int checkRows()
+{
+    int fullRows{0};
+    bool full{true};
+    for (int i=0;i<24;i++)
+    {
+        full=true;
+        for (int j=0; j<10; j++)
+        {
+            if (gArea[i][j]==false)
+                full=false;
+        }
+        if (full==true)
+        {
+            fullRows++;
+            gRows[i]=true;
+        }
+    }
+    return fullRows;
+}
+void clearFullRows()
+{
+    for (int i=0; i<24; i++)
+    {
+        if (gRows[i]==true)
+        {
+            for (int j=0; j<10; j++)
+            {
+                gArea[i][j]=false;
+            }
+        }
+    }
+}
+void dropClearedRows()
+{
+    for (int i=1; i<24; i++)
+    {
+        if (gRows[i]==true)
+        {
+            for (int j=0; j<10; j++)
+            {
+                for (int i2=i; i2>0;i2--)
+                {
+                    gArea[i2][j]=gArea[i2-1][j];
+
+                }
+            }
+            gRows[i]=false;
+        }
+    }
+}
+void rotateBlockRight(bool (*&blk)[4][4], bool (*&rblk)[4][4])
+{
+    for (int i=0; i<4;i++)
+    {
+        for (int j=0; j<4;j++)
+        {
+            (*rblk)[j][3-i]=(*blk)[i][j];
+        }
+    }
+}
+void rotateBlockLeft(bool (*&blk)[4][4], bool (*&rblk)[4][4])
+{
+    for (int i=0; i<4;i++)
+    {
+        for (int j=0; j<4;j++)
+        {
+            (*rblk)[3-j][i]=(*blk)[i][j];
         }
     }
 }
@@ -188,7 +298,12 @@ int main() {
         Uint64 renderingNs;
         int posX{0};
         int posY{0};
-        bool (*currBlock)[2][4]=&square;
+        int preX{0};
+        int preY{0};
+        bool (*currBlock)[4][4];
+        bool (*rotBlock)[4][4];
+        copyBlock(currBlock,&square);
+        copyBlock(rotBlock, &square);
         while (quit == false)
         {
             while (SDL_PollEvent(&e) == true)
@@ -196,6 +311,39 @@ int main() {
                 if (e.type == SDL_EVENT_QUIT)
                 {
                     quit = true;
+                }
+                else if (e.type== SDL_EVENT_KEY_DOWN)
+                {
+                    //Implement keyboard presses
+                    switch (e.key.key)
+                    {
+                    case SDLK_LEFT:
+                        if (!checkCollisions(posX-1,posY,currBlock))
+                        posX--;
+                        break;
+                    case SDLK_RIGHT:
+                        if (!checkCollisions(posX+1,posY,currBlock))
+                            posX++;
+                        break;
+                    case SDLK_SPACE:
+                        if (!checkCollisions(posX,posY+1,currBlock))
+                            posY++;
+                        break;
+                    case SDLK_E:
+                        rotateBlockRight(currBlock,rotBlock);
+                        if (!checkCollisions(posX,posY,rotBlock))
+                        {
+                            copyBlock(currBlock,rotBlock);
+                        }
+                        break;
+                    case SDLK_Q:
+                        rotateBlockLeft(currBlock,rotBlock);
+                        if (!checkCollisions(posX,posY,rotBlock))
+                        {
+                                copyBlock(currBlock,rotBlock);
+                        }
+                        break;
+                    }
                 }
 
             }
@@ -218,8 +366,14 @@ int main() {
                     }
                 }
             }
+            if (checkRows()>0)
+            {
+                clearFullRows();
+                dropClearedRows();
+            }
             if (ready==true)
             {
+                randBlock(currBlock);
                 posX=placeBlock(currBlock);
                 ready=false;
 
@@ -233,10 +387,11 @@ int main() {
 
             if (checkCollisions(posX,posY,currBlock))
             {
-                posY--;
+                posY=preY;
+                posX=preX;
                 ready=true;
                 setBlock(posX,posY,currBlock);
-                posX=posY=0;
+                posX=posY=preX=preY=0;
             }
             else
             {
@@ -253,9 +408,11 @@ int main() {
 
             }
             frameCount++;
-
+            preX=posX;
+            preY=posY;
         }
     }
+    SDL_Quit();
     return exitCode;
     // TIP See CLion help at <a href="https://www.jetbrains.com/help/clion/">jetbrains.com/help/clion/</a>. Also, you can try interactive lessons for CLion by selecting 'Help | Learn IDE Features' from the main menu.
 }
