@@ -2,13 +2,17 @@
 #include <gameBlock.h>
 //#include <gameArea.h>
 #include<SDL3/SDL.h>
+#include<SDL3_ttf/SDL_ttf.h>
 
 #include "SDL3_image/SDL_image.h"
+#include "vendored/SDL_ttf/include/SDL3_ttf/SDL_ttf.h"
 SDL_Window* gWindow;
 SDL_Renderer* gRenderer;
 SDL_Texture* blockTexture;
 SDL_Texture* gridTexture;
-
+SDL_Texture nextTexture;
+SDL_Texture scoreTexture;
+TTF_Font* gFont{nullptr};
 bool gArea[24][10];
 bool gRows[24];
 int score{0};
@@ -50,6 +54,24 @@ bool init()
     }
     return success;
 }
+/*bool loadFont(std::string path)
+{
+    bool success{true};
+    if (gFont=TTF_OpenFont(path.c_str(),28); gFont==nullptr)
+    {
+        success=false;
+    }
+    else
+    {
+        SDL_Color textColor={0x00,0x00,0x00,0xff};
+        if (scoreTexture.loadFromRenderedText("Score: ")==false)
+        {
+            success=false;
+        }
+
+    }
+    return success;
+}*/
 bool loadMedia(std::string path)
 {
     bool success{true};
@@ -127,7 +149,7 @@ bool checkCollisions(int xPos, int yPos, bool (*blk)[4][4])
             {
                 if (gArea[i+yPos][j+xPos]==true||j+xPos>=10||j+xPos<0||i+yPos>=24)
                 {
-                    collision = true;
+                     collision = true;
                 }
                 /*else if (collision==false)
                 {
@@ -154,8 +176,26 @@ bool renderBlock(int xPos, int yPos, bool (*blk)[4][4])
             }
         }
     }
+    return true;
 }
-void copyBlock(bool (*&blk)[4][4], bool (*copyBlock)[4][4])
+bool renderBlockOnScreen(int xPos, int yPos, bool (*blk)[4][4])
+{
+    SDL_FRect gameBlock;
+    for (int i=0; i<4; i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            if ((*blk)[i][j]==true)
+            {
+                gameBlock={static_cast<float>(xPos)+24.f*static_cast<float>(j),static_cast<float>(yPos)+24.f*static_cast<float>(i),24.f,24.f};
+                SDL_RenderTexture(gRenderer,blockTexture,nullptr,&gameBlock);
+
+            }
+        }
+    }
+    return true;
+}
+void copyBlock(bool (*blk)[4][4], bool (*copyBlock)[4][4])
 {
     for (int i=0;i<4;i++)
     {
@@ -166,7 +206,7 @@ void copyBlock(bool (*&blk)[4][4], bool (*copyBlock)[4][4])
     }
 
 }
-void randBlock(bool (*&blk)[4][4])
+void randBlock(bool (*blk)[4][4])
 {
     Uint64 choice=SDL_GetTicks()%7;
     switch (choice){
@@ -255,7 +295,7 @@ void dropClearedRows()
         }
     }
 }
-void rotateBlockRight(bool (*&blk)[4][4], bool (*&rblk)[4][4])
+void rotateBlockRight(bool (*blk)[4][4], bool (*rblk)[4][4])
 {
     for (int i=0; i<4;i++)
     {
@@ -265,7 +305,7 @@ void rotateBlockRight(bool (*&blk)[4][4], bool (*&rblk)[4][4])
         }
     }
 }
-void rotateBlockLeft(bool (*&blk)[4][4], bool (*&rblk)[4][4])
+void rotateBlockLeft(bool (*blk)[4][4], bool (*rblk)[4][4])
 {
     for (int i=0; i<4;i++)
     {
@@ -274,6 +314,12 @@ void rotateBlockLeft(bool (*&blk)[4][4], bool (*&rblk)[4][4])
             (*rblk)[3-j][i]=(*blk)[i][j];
         }
     }
+}
+Uint64 calculateScore(int rows)
+{
+    Uint64 calScore{0};
+    return(calScore);
+
 }
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
@@ -300,10 +346,13 @@ int main() {
         int posY{0};
         int preX{0};
         int preY{0};
-        bool (*currBlock)[4][4];
-        bool (*rotBlock)[4][4];
-        copyBlock(currBlock,&square);
-        copyBlock(rotBlock, &square);
+        int rowsCleared{0};
+        bool (currBlock)[4][4];
+        bool (rotBlock)[4][4];
+        bool (nextBlock)[4][4];
+        randBlock(&currBlock);
+        randBlock(&nextBlock);
+        copyBlock(&rotBlock, &square);
         while (quit == false)
         {
             while (SDL_PollEvent(&e) == true)
@@ -318,30 +367,32 @@ int main() {
                     switch (e.key.key)
                     {
                     case SDLK_LEFT:
-                        if (!checkCollisions(posX-1,posY,currBlock))
+                        if (!checkCollisions(posX-1,posY,&currBlock))
                         posX--;
                         break;
                     case SDLK_RIGHT:
-                        if (!checkCollisions(posX+1,posY,currBlock))
+                        if (!checkCollisions(posX+1,posY,&currBlock))
                             posX++;
                         break;
                     case SDLK_SPACE:
-                        if (!checkCollisions(posX,posY+1,currBlock))
+                        if (!checkCollisions(posX,posY+1,&currBlock))
                             posY++;
                         break;
                     case SDLK_E:
-                        rotateBlockRight(currBlock,rotBlock);
-                        if (!checkCollisions(posX,posY,rotBlock))
+                        rotateBlockRight(&currBlock,&rotBlock);
+                        if (!checkCollisions(posX,posY,&rotBlock))
                         {
-                            copyBlock(currBlock,rotBlock);
+                            copyBlock(&currBlock,&rotBlock);
                         }
                         break;
                     case SDLK_Q:
-                        rotateBlockLeft(currBlock,rotBlock);
-                        if (!checkCollisions(posX,posY,rotBlock))
+                        rotateBlockLeft(&currBlock,&rotBlock);
+                        if (!checkCollisions(posX,posY,&rotBlock))
                         {
-                                copyBlock(currBlock,rotBlock);
+                                copyBlock(&currBlock,&rotBlock);
                         }
+                        break;
+                    default:
                         break;
                     }
                 }
@@ -349,7 +400,8 @@ int main() {
             }
             SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
             SDL_RenderClear( gRenderer );
-            SDL_FRect gBlock={100,100,10,10};
+            SDL_FRect gBlock={400,100,180,180};
+            SDL_RenderTexture(gRenderer,gridTexture,nullptr,&gBlock);
             for (int i=0;i<24;i++)
             {
                 for (int j=0; j<10; j++)
@@ -366,15 +418,17 @@ int main() {
                     }
                 }
             }
-            if (checkRows()>0)
+            if ((rowsCleared=checkRows());rowsCleared>0)
             {
+                calculateScore(rowsCleared);
                 clearFullRows();
                 dropClearedRows();
             }
             if (ready==true)
             {
-                randBlock(currBlock);
-                posX=placeBlock(currBlock);
+                copyBlock(&currBlock,&nextBlock);
+                randBlock(&nextBlock);
+                posX=placeBlock(&currBlock);
                 ready=false;
 
             }
@@ -385,19 +439,19 @@ int main() {
                 frameCount=0;
             }
 
-            if (checkCollisions(posX,posY,currBlock))
+            if (checkCollisions(posX,posY,&currBlock))
             {
                 posY=preY;
                 posX=preX;
                 ready=true;
-                setBlock(posX,posY,currBlock);
+                setBlock(posX,posY,&currBlock);
                 posX=posY=preX=preY=0;
             }
             else
             {
-                renderBlock(posX,posY,currBlock);
+                renderBlock(posX,posY,&currBlock);
             }
-
+            renderBlockOnScreen(466,166,&nextBlock);
             SDL_RenderPresent(gRenderer);
             renderingNs=SDL_GetTicksNS()-prevTicks;
             constexpr Uint64 nsPerFrame=1000000000/kFps;

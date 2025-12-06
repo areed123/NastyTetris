@@ -16,4 +16,4 @@ add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR})
 add_executable(NastyTetris WIN32 main.cpp gameArea.cpp gameBlock.cpp)
 
-target_link_libraries(NastyTetris PRIVATE SDL3_mixer::SDL3_mixer SDL3_image::SDL3_image SDL3::SDL3)
+target_link_libraries(NastyTetris PRIVATE SDL3_ttf::SDL3_ttf SDL3_image::SDL3_image SDL3::SDL3)
