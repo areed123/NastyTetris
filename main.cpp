@@ -1,9 +1,6 @@
 #include <iostream>
-#include <gameBlock.h>
-//#include <gameArea.h>
 #include<SDL3/SDL.h>
 #include<SDL3_ttf/SDL_ttf.h>
-
 #include "SDL3_image/SDL_image.h"
 #include "vendored/SDL_ttf/include/SDL3_ttf/SDL_ttf.h"
 SDL_Window* gWindow;
