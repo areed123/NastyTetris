@@ -336,7 +336,7 @@ int main() {
 
     else
     {
-        loadMedia("../../Textures/TetrisBlock.png");
+        loadMedia("../Textures/TetrisBlock.png");
         bool quit{ false };
         bool collision{false};
         SDL_Event e;
