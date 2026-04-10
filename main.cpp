@@ -1,15 +1,15 @@
 #include <iostream>
 #include<SDL3/SDL.h>
-#include<SDL3_ttf/SDL_ttf.h>
+//#include<SDL3_ttf/SDL_ttf.h>
 #include "SDL3_image/SDL_image.h"
-#include "vendored/SDL_ttf/include/SDL3_ttf/SDL_ttf.h"
+//#include "vendored/SDL_ttf/include/SDL3_ttf/SDL_ttf.h"
 SDL_Window* gWindow;
 SDL_Renderer* gRenderer;
 SDL_Texture* blockTexture;
 SDL_Texture* gridTexture;
 SDL_Texture nextTexture;
 SDL_Texture scoreTexture;
-TTF_Font* gFont{nullptr};
+//TTF_Font* gFont{nullptr};
 bool gArea[24][10];
 bool gRows[24];
 int score{0};
